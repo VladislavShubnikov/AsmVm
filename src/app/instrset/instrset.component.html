@@ -1,35 +1,50 @@
 <div class="card">
   <div class="card-title">
     <h4>
+      <i class="fa fa-list-alt"></i>
       Instruction set
     </h4>
   </div>
   <div class="card-body">
+  
+    <table class="table">
+      <tbody>
+        <tr>
+          <td>
+            <button type="button" class="btn btn-primary" (click)="onClickButtonDown()" >
+              <i class="fa fa-arrow-circle-down">
+              </i>
+              Down
+            </button>
+            
+          </td>
+          <td>
+            <button type="button" class="btn btn-primary" (click)="onClickButtonUp()">
+              <i class="fa fa-arrow-circle-up">
+              </i>
+              Up
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+  
     <table class="table table-bordered table-condensed">
       <thead>
         <tr>
+        
           <th>
-            Operation
+            compiled code
           </th>
-          <th>
-            Dst
-          </th>
-          <th>
-            Src
-          </th>
+          
         </tr>
       </thead>
       <tbody>
       
-        <tr *ngFor="let instr of m_instructions">
+        <tr *ngFor="let str of m_instrLines; index as i" [class.table-success]=isSelected(i)>
           <td>
-            {{instr.m_instruction}}
-          </td>
-          <td>
-            {{instr.m_operandDst.m_register}}
-          </td>
-          <td>
-            {{instr.m_operandSrc.m_register}}
+            {{m_instrLines[i]}}
           </td>
         </tr>
         

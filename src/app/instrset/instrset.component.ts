@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { InstructionComponent } from '../instruction/instruction.component';
 import { LexemType } from '../core/lexemtype';
 import { Register } from '../core/register';
+import { Compiler } from '../core/compiler';
 
 @Component({
   selector: 'app-instrset',
@@ -10,30 +11,90 @@ import { Register } from '../core/register';
   styleUrls: ['./instrset.component.css']
 })
 export class InstrSetComponent implements OnInit {
+
+  // ********************************************************
+  // Const
+  // ********************************************************
+
+  static readonly NUM_LINES = 12;
+
   // ********************************************************
   // Data
   // ********************************************************
+
   m_instructions: InstructionComponent[];
+  m_instrLines: string[];
+  m_currentLine: number;
 
   // ********************************************************
   // Methods
   // ********************************************************
   constructor() {
-    const INIT_NUM_INST = 0;
-    this.m_instructions = new Array(INIT_NUM_INST);
-    /*
-    this.m_instructions[0] = new InstructionComponent();
-    this.m_instructions[1] = new InstructionComponent();
+    this.m_currentLine = 0;
+    this.m_instructions = [];
+    this.m_instrLines = new Array(InstrSetComponent.NUM_LINES);
+    for (let i = 0; i < InstrSetComponent.NUM_LINES; i++) {
+      this.m_instrLines[i] = '';
+    }
 
-    this.m_instructions[0].m_instruction = LexemType.LEXEM_OP_INC;
-    this.m_instructions[0].m_operandDst.m_register = Register.REG_EAX;
-
-    this.m_instructions[1].m_instruction = LexemType.LEXEM_OP_DEC;
-    this.m_instructions[1].m_operandDst.m_register = Register.REG_ECX;
-    */
+    // test
+    const strArr = [
+      'LabelAgain:',
+      '  cmp EAX, 0',
+      '  jz LabelQuit',
+      '  add EBX, ECX',
+      '  dec ECX',
+      '  jnz LabelAgain',
+      'LabelQuit:',
+      '  xor ECX, ECX'
+    ];
+    // test. build single string
+    let strCode = '';
+    for (let i = 0; i < strArr.length; i++) {
+      strCode += strArr[i];
+      strCode += '\n';
+    }
+    // test. compile code
+    this.compilefromSource(strCode);
   }
 
   ngOnInit() {
+  }
+
+  isSelected(indStr) {
+    const isSel = (indStr === this.m_currentLine);
+    return isSel;
+    // return true;
+  }
+  onClickButtonDown() {
+    const numCompiledLines = this.m_instructions.length;
+    const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_LINES) ?
+      numCompiledLines : InstrSetComponent.NUM_LINES;
+    if (this.m_currentLine < numLinesToShow - 1) {
+      this.m_currentLine++;
+    }
+  }
+  onClickButtonUp() {
+    if (this.m_currentLine > 0) {
+      this.m_currentLine--;
+    }
+  }
+
+  compilefromSource(strAsmText) {
+    this.m_instructions = [];
+    const compiler = new Compiler();
+    const errCompileBool = compiler.createCode(strAsmText, this);
+    if (!errCompileBool) {
+      console.log(`Unexpected comple error = ${compiler.m_strErr}`);
+    }
+    const numCompiledLines = this.m_instructions.length;
+    const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_LINES) ?
+      numCompiledLines : InstrSetComponent.NUM_LINES;
+    for (let i = 0; i < numLinesToShow; i++) {
+      const instr = this.m_instructions[i];
+      const str = instr.getString();
+      this.m_instrLines[i] = str;
+    }
   }
 
 }

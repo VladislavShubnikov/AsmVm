@@ -5,13 +5,15 @@ import { AppComponent } from './app.component';
 import { RegistersComponent } from './registers/registers.component';
 import { InstructionComponent } from './instruction/instruction.component';
 import { InstrSetComponent } from './instrset/instrset.component';
+import { ConsoleComponent } from './console/console.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     RegistersComponent,
     InstructionComponent,
-    InstrSetComponent
+    InstrSetComponent,
+    ConsoleComponent
   ],
   imports: [
     BrowserModule
