@@ -1,0 +1,22 @@
+.card {
+  width: 35rem;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.4);
+  transition: 0.3s;
+  border-radius: 5px; /* 5px rounded corners */
+  background-color: #CDCEFD;
+}
+.card-title {
+  width: 100%;
+  display:inline-block;
+  background-color: #4040FF;
+  color: white;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+.tr {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.table {
+  line-height: 0.3;
+}

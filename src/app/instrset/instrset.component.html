@@ -1,0 +1,41 @@
+<div class="card">
+  <div class="card-title">
+    <h4>
+      Instruction set
+    </h4>
+  </div>
+  <div class="card-body">
+    <table class="table table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>
+            Operation
+          </th>
+          <th>
+            Dst
+          </th>
+          <th>
+            Src
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+      
+        <tr *ngFor="let instr of m_instructions">
+          <td>
+            {{instr.m_instruction}}
+          </td>
+          <td>
+            {{instr.m_operandDst.m_register}}
+          </td>
+          <td>
+            {{instr.m_operandSrc.m_register}}
+          </td>
+        </tr>
+        
+        
+      </tbody>
+    </table>
+  </div>
+</div>
+
