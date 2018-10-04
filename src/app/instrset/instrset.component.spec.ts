@@ -28,7 +28,6 @@ describe('InstrSetComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  /*
   it('check compiler code reg scale', () => {
     const compiler = new Compiler();
     const codeStr = 'mov ECX, [EBX * 8 + 987]';
@@ -65,10 +64,9 @@ describe('InstrSetComponent', () => {
     const setInstr = new InstrSetComponent();
     const errCompile = compiler.createCode(codeStr, setInstr);
     expect(errCompile).toEqual(false);
-    if (!errCompile) {
-      const strErr = compiler.m_strErr;
-      console.log(`Expected compile error = ${strErr}`);
-    }
+    // if (!errCompile) {
+    //   console.log(`Expected compile error = ${compiler.m_strErr}`);
+    // }
   });
 
   it('check compiler correct mem referencing', () => {
@@ -97,11 +95,8 @@ describe('InstrSetComponent', () => {
       const strA = compiler.m_strErr;
       console.log(`Unexpected compile error = ${strA}`);
     }
-
   });
-  */
 
-  /*
   it('check compiler code labels only', () => {
     const compiler = new Compiler();
     const codeStr = 'LabelAgain: \n jmp LabelAgain';
@@ -197,7 +192,7 @@ describe('InstrSetComponent', () => {
         const isEq = (strInstDebug === codeStrArr[i]);
         expect(isEq).toEqual(true);
         if (!isEq) {
-          console.log(`Should be equal. In = ${codeStrArr[i]}. Out = ${strInstDebug}`)
+          console.log(`Should be equal. In = ${codeStrArr[i]}. Out = ${strInstDebug}`);
         }
       }
       // console.log(`InstructionCompiled = ${strInstDebug}`);
@@ -207,11 +202,11 @@ describe('InstrSetComponent', () => {
   it('test preprocess many labels', () => {
     const compiler = new Compiler();
     const codeStrArr = [
-      'mov ECX, [EAX * 20]',
+      'mov ECX, [EAX * 2]',
       'LabelA:',
       '  cmp ECX, 1',
       '  jge LabelD',
-      '  add EAX, DWORD PTR [ESP + EDX * 18 + 9]',
+      '  add EAX, DWORD PTR [ESP + EDX * 8 + 9]',
       '  jge LabelC',
       '  cmp ECX, 7',
       '  jb LabelB',
@@ -244,14 +239,8 @@ describe('InstrSetComponent', () => {
 
     const numCompiledInstr = setInstr.m_instructions.length;
     expect(numCompiledInstr).toEqual(codeNumLines);
-    for (i = 0; i < numCompiledInstr; i++) {
-      const instr = setInstr.m_instructions[i];
-      const strInstDebug = instr.getString();
-      console.log(`Compiled line = ${strInstDebug}`);
-    }
-
   });
-  */
+
 
   it('check compiler code concatenation large example', () => {
     const compiler = new Compiler();
@@ -382,25 +371,50 @@ describe('InstrSetComponent', () => {
     }
     const TWO = 2;
     const numCompiledInstr = setInstr.m_instructions.length;
-    console.log(`TEST. Num compiled Instructions = ${numCompiledInstr}`);
+    // console.log(`TEST. Num compiled Instructions = ${numCompiledInstr}`);
     expect(numCompiledInstr).toBeLessThan(codeNumLines);
     expect(numCompiledInstr).toBeGreaterThan(codeNumLines / TWO);
-    const INSTR_LABEL = 1;
-    const INSTR_JUMP = 6;
+    let numLabels = 0;
+    let numPushPop = 0;
+    let numMov = 0;
+    let numMul = 0;
+    let numAdd = 0;
     for (i = 0; i < numCompiledInstr; i++) {
       const instr = setInstr.m_instructions[i];
       const strInstDebug = instr.getString();
-      console.log(`TEST. Instruction[${i}] = ${strInstDebug}`);
-      /*
-      if ((i !== INSTR_LABEL) && (i !== INSTR_JUMP)) {
-        const isEq = (strInstDebug === codeStrArr[i]);
-        expect(isEq).toEqual(true);
-        if (!isEq) {
-          console.log(`TEST. Should be equal. In = ${codeStrArr[i]}. Out = ${strInstDebug}`);
-        }
-      } // if some special instructions
-      */
-      // console.log(`InstructionCompiled = ${strInstDebug}`);
-    }
+      // console.log(`TEST. Instruction[${i}] = ${strInstDebug}`);
+      // account labels inside instructions
+      if (instr.m_labelCode >= 0) {
+        numLabels++;
+      }
+      if ((instr.m_instruction === LexemType.LEXEM_OP_PUSH) || (instr.m_instruction === LexemType.LEXEM_OP_POP)) {
+        numPushPop++;
+      }
+      if (instr.m_instruction === LexemType.LEXEM_OP_MOV) {
+        numMov++;
+      }
+      if (instr.m_instruction === LexemType.LEXEM_OP_MUL) {
+        numMul++;
+      }
+      if (instr.m_instruction === LexemType.LEXEM_OP_ADD) {
+        numAdd++;
+      }
+    } // for (i) all compiled intructions
+    // console.log(`TEST. numLabels = ${numLabels}`);
+    // console.log(`TEST. numPushPop = ${numPushPop}`);
+    // console.log(`TEST. numMov = ${numMov}`);
+    // console.log(`TEST. numMul = ${numMul}`);
+    // console.log(`TEST. numAdd = ${numAdd}`);
+    const GOLD_LABELS = 9;
+    const GOLD_PUSHPOP = 4;
+    const GOLD_MOVS = 27;
+    const GOLD_MULS = 2;
+    const GOLD_ADDS = 3;
+
+    expect(numLabels).toEqual(GOLD_LABELS);
+    expect(numPushPop).toEqual(GOLD_PUSHPOP);
+    expect(numMov).toEqual(GOLD_MOVS);
+    expect(numMul).toEqual(GOLD_MULS);
+    expect(numAdd).toEqual(GOLD_ADDS);
   });
 });

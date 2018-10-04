@@ -831,7 +831,7 @@ export class Compiler {
     instrSet.m_instructions = null;
     this.m_strErr = '';
     const numApproxCommands = this.getNumLines(strTaskCode);
-    console.log(`Complier. createInstructionSet. numApproxCommands = ${numApproxCommands}`);
+    // console.log(`Complier. createInstructionSet. numApproxCommands = ${numApproxCommands}`);
     instrSet.m_instructions = new Array(0);
 
     let lineNumber;
