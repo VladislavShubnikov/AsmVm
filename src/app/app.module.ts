@@ -6,6 +6,7 @@ import { RegistersComponent } from './registers/registers.component';
 import { InstructionComponent } from './instruction/instruction.component';
 import { InstrSetComponent } from './instrset/instrset.component';
 import { ConsoleComponent } from './console/console.component';
+import { VirtualMachineComponent } from './virtual-machine/virtual-machine.component';
 
 @NgModule({
   declarations: [
@@ -13,7 +14,8 @@ import { ConsoleComponent } from './console/console.component';
     RegistersComponent,
     InstructionComponent,
     InstrSetComponent,
-    ConsoleComponent
+    ConsoleComponent,
+    VirtualMachineComponent
   ],
   imports: [
     BrowserModule
