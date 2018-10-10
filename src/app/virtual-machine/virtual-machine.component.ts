@@ -7,6 +7,8 @@ import { Component, OnInit } from '@angular/core';
 import { Register } from '../core/register';
 import { RegFlags } from '../core/regflags';
 import { OperandType } from '../core/operandtype';
+import { LexemType } from '../core/lexemtype';
+import { LexemParser } from '../core/lexemparser';
 import { InstructionComponent } from '../instruction/instruction.component';
 import { InstrSetComponent } from '../instrset/instrset.component';
 
@@ -14,6 +16,11 @@ import { InstrSetComponent } from '../instrset/instrset.component';
 const KBYTE = 1024;
 const TWO = 2;
 const NUM_64 = 64;
+
+const MAX_EMULATOR_DATA_SIZE = (KBYTE * NUM_64);
+const MAX_EMULATOR_STACK_SIZE = (KBYTE * TWO);
+const MAX_INSTRUCTIONS_CAN_BE_PERFORMED = 16000;
+
 
 type BackendCallback = (instr: InstructionComponent) => number;
 
@@ -25,6 +32,83 @@ type BackendCallback = (instr: InstructionComponent) => number;
   styleUrls: ['./virtual-machine.component.css']
 })
 
+// **********************************************************
+/*
+function _getDataFromOperand(operand: Operand, vm: VirtualMachineComponent): number {
+  const FAIL = -1;
+  const FOUR = 4;
+  if (operand.m_operandType === OperandType.OPERAND_IMMEDIATE_INT) {
+    return operand.m_immediateInt;
+  } else if (operand.m_operandType === OperandType.OPERAND_REGISTER) {
+    const indexReg = operand.m_register;
+    if (indexReg < 0) {
+      console.log(`Backend. getDataFromOperand. Bad Register index = ${indexReg}`);
+      vm.m_strErr = `Backend. getDataFromOperand. Bad Register index = ${indexReg}`;
+      return FAIL;
+    }
+    if (indexReg >= Register.REG_COUNT) {
+      console.log(`Backend. getDataFromOperand. Bad Register index = ${indexReg}`);
+      vm.m_strErr = `Backend. getDataFromOperand. Bad Register index = ${indexReg}`;
+      return FAIL;
+    }
+    if (indexReg === Register.REG_CL) {
+      const BYTE_MASK = 0xff;
+      // tslint:disable-next-line
+      return (vm.m_registers[Register.REG_ECX] & BYTE_MASK);
+    }
+    return vm.m_registers[indexReg];
+  } else if (operand.m_operandType === OperandType.OPERAND_MEMORY) {
+    const mem = operand.m_memoryDesc;
+    let offsetDataBytes = 0;
+    if (mem.m_flagImmAdd) {
+      offsetDataBytes += mem.m_immAdd;
+    }
+    if (mem.m_flagRegBase) {
+      const indexReg = mem.m_registerBase;
+      offsetDataBytes += vm.m_registers[indexReg];
+    }
+    if (mem.mem.m_flagRegIndex) {
+      if (mem.m_flagImmScale) {
+        const indexReg = mem.m_registerBase;
+        offsetDataBytes += vm.m_registers[indexReg] * mem.m_immScale;
+      } else {
+        const indexReg = mem.m_registerBase;
+        offsetDataBytes += vm.m_registers[indexReg];
+      }
+    }
+    if (offsetDataBytes < 0) {
+      vm.m_strErr = 'Runtimne error. Memory access. Index out of range';
+      return FAIL;
+    } else if ((offsetDataBytes / FOUR) >= MAX_EMULATOR_DATA_SIZE) {
+      vm.m_strErr = 'Runtimne error. Memory access. Index out of range';
+      return FAIL;
+    } else {
+      // get 32 bytes from in data array
+      const SHIFT_8 = 8;
+      const SHIFT_16 = 16;
+      const SHIFT_24 = 24;
+      const OFF_0 = 0;
+      const OFF_1 = 1;
+      const OFF_2 = 2;
+      const OFF_3 = 3;
+      const valA = vm.m_data[offsetDataBytes + OFF_0];
+      const valB = vm.m_data[offsetDataBytes + OFF_1];
+      const valC = vm.m_data[offsetDataBytes + OFF_2];
+      const valD = vm.m_data[offsetDataBytes + OFF_3];
+      // tslint:disable-next-line
+      const val = valA + (valB << SHIFT_8) + (valC << SHIFT_16) + (valD << SHIFT_24);
+      return val;
+    }
+    vm.m_strErr = `Runtimne error. Memory access. Strange data offset value = ${offsetDataBytes}`;
+    return FAIL;
+
+  } // if operand is memory
+  vm.m_strErr = 'Runtimne error. Invalid operand type';
+  return FAIL;
+}
+*/
+
+
 export class VirtualMachineComponent implements OnInit {
 
   // ********************************************************
@@ -33,6 +117,7 @@ export class VirtualMachineComponent implements OnInit {
 
   static readonly MAX_EMULATOR_DATA_SIZE = (KBYTE * NUM_64);
   static readonly MAX_EMULATOR_STACK_SIZE = (KBYTE * TWO);
+  static readonly MAX_INSTRUCTIONS_CAN_BE_PERFORMED = 16000;
 
   // ********************************************************
   // Data
@@ -42,7 +127,10 @@ export class VirtualMachineComponent implements OnInit {
   m_regFlags: number;
   m_data: number[];
   m_instrSet: InstrSetComponent;
+  m_curInstructionIndex: number;
   m_strErr: string;
+  m_codeFinished: boolean;
+  m_numInstructionsPerformed: number;
 
   m_backends: BackendCallback[];
 
@@ -51,6 +139,9 @@ export class VirtualMachineComponent implements OnInit {
   // ********************************************************
 
   constructor() {
+    this.m_curInstructionIndex = 0;
+    this.m_codeFinished = false;
+    this.m_numInstructionsPerformed = 0;
     let i;
     this.m_registers = new Array(Register.REG_COUNT);
     for (i = 0; i < Register.REG_COUNT; i++) {
@@ -70,14 +161,17 @@ export class VirtualMachineComponent implements OnInit {
     this.m_strErr = '';
 
     // setup back ends
-    this.m_backends = [];
-    this.m_backends.push(this.instrXor);
-    this.m_backends.push(this.instrAnd);
-    this.m_backends.push(this.instrOr);
-    this.m_backends.push(this.instrAdd);
-    this.m_backends.push(this.instrSub);
-    this.m_backends.push(this.instrMul);
-    this.m_backends.push(this.instrDiv);
+    this.m_backends = new Array(LexemType.LEXEM_OP_LAST);
+    for (i = 0; i < LexemType.LEXEM_OP_LAST; i++) {
+      this.m_backends[i] = null;
+    }
+    this.m_backends[LexemType.LEXEM_OP_XOR] = this.instrXor;
+    this.m_backends[LexemType.LEXEM_OP_AND] = this.instrAnd;
+    this.m_backends[LexemType.LEXEM_OP_OR] = this.instrOr;
+    this.m_backends[LexemType.LEXEM_OP_SUB] = this.instrSub;
+    this.m_backends[LexemType.LEXEM_OP_MUL] = this.instrMul;
+    this.m_backends[LexemType.LEXEM_OP_DIV] = this.instrDiv;
+    this.m_backends[LexemType.LEXEM_OP_MOV] = this.instrMov;
   }
 
   ngOnInit() {
@@ -86,7 +180,7 @@ export class VirtualMachineComponent implements OnInit {
   /**
   * return: -1, if bad
   */
-  getDataFromOperand(operand) {
+  public getDataFromOperand(operand) {
     const FAIL = -1;
     const FOUR = 4;
     if (operand.m_operandType === OperandType.OPERAND_IMMEDIATE_INT) {
@@ -162,7 +256,7 @@ export class VirtualMachineComponent implements OnInit {
   /**
   * return: true if success put operand
   */
-  putDataToOperand(operand, valDst) {
+  public putDataToOperand(operand, valDst) {
     const FOUR = 4;
     if (operand.m_operandType === OperandType.OPERAND_IMMEDIATE_INT) {
       console.log('Backend. putDataToOperand. Bad operand type OPERAND_IMMEDIATE_INT');
@@ -240,7 +334,7 @@ export class VirtualMachineComponent implements OnInit {
     return true;
   } // end of putDataToOperand
 
-  static hasParity(val) {
+  public static hasParity(val) {
     let i, numOnes;
     numOnes = 0;
     const NUM_BITS = 8;
@@ -258,7 +352,7 @@ export class VirtualMachineComponent implements OnInit {
     return true;
   }
 
-  modifyFlags(valDst) {
+  public modifyFlags(valDst) {
     // zero flag
     if (valDst === 0) {
       /* tslint:disable-next-line */
@@ -284,11 +378,11 @@ export class VirtualMachineComponent implements OnInit {
     }
   }
 
-  getData() {
+  public getData() {
     return this.m_data;
   }
 
-  setupInstructionSet(instrSet) {
+  public setupInstructionSet(instrSet) {
     this.m_instrSet = instrSet;
   }
 
@@ -300,6 +394,9 @@ export class VirtualMachineComponent implements OnInit {
     const opSrc = instr.m_operandSrc;
     let valDst = this.getDataFromOperand(opDst);
     const valSrc = this.getDataFromOperand(opSrc);
+    // let valDst = _getDataFromOperand(opDst, this);
+    // const valSrc = _getDataFromOperand(opSrc, this);
+
     /* tslint:disable-next-line */
     valDst = valDst ^ valSrc;
     this.modifyFlags(valDst);
@@ -387,5 +484,57 @@ export class VirtualMachineComponent implements OnInit {
 
   // TODO: instrShl
 
+  instrMov(instr) {
+    const opDst = instr.m_operandDst;
+    const opSrc = instr.m_operandSrc;
+    const valSrc = this.getDataFromOperand(opSrc);
+    const valDst = valSrc;
+    this.putDataToOperand(opDst, valDst);
+    return 1;
+  }
+  /**
+  * Run instruction
+  */
+  performInstruction(instr) {
+
+    // console.log(`VM. performInstruction. Instr to perform now: ${instr.m_instruction}`);
+    if (instr.m_instruction === LexemType.LEXEM_OP_XOR) {
+      console.log('VM. do xor');
+      return this.instrXor(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_AND) {
+      console.log('VM. do and');
+      return this.instrAnd(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_OR) {
+      console.log('VM. do or');
+      return this.instrOr(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_ADD) {
+      console.log('VM. do add');
+      return this.instrAdd(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_SUB) {
+      console.log('VM. do sub');
+      return this.instrSub(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_MUL) {
+      console.log('VM. do mul');
+      return this.instrMul(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_DIV) {
+      console.log('VM. do div');
+      return this.instrDiv(instr);
+    } else if (instr.m_instruction === LexemType.LEXEM_OP_MOV) {
+      console.log('VM. do mov');
+      return this.instrMov(instr);
+    }
+
+    /*
+    const func = this.m_backends[instr.m_instruction];
+    if (func !== null) {
+      const retVal = this.m_backends[instr.m_instruction](instr);
+      return retVal;
+    }
+    */
+
+    const lexParser = new LexemParser();
+    const strErr = lexParser.getStringByLexem(instr.m_instruction);
+    console.log(`Unimplemented instructiion code: ${strErr}`);
+  }
 
 }
