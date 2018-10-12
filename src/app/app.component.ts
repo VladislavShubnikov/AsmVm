@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Preprocessor } from './core/preprocessor';
+// import { Service } from './service';
 
 
 @Component({
@@ -18,12 +19,16 @@ export class AppComponent {
   m_clickCounter: number;
   m_strInput: string;
   m_strInputPreprocessed: string;
+  // m_service: Service;
 
   // *****************************
   // Methods
   // *****************************
 
   constructor() {
+    // const tests = require('../../assets/test.json');
+    // this.m_service = new Service();
+
     this.m_title = 'Assembler virtual machine';
     this.m_clickMessage = 'Before click';
     this.m_clickCounter = 0;

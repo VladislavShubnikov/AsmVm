@@ -277,6 +277,7 @@ export class Preprocessor {
     let   prevLexemIdent  = false;
     let prevLexemJump     = false;
     let isPrev            = 0;
+    this.m_strErr         = '';
 
     this.m_identifiers = null;
     this.m_identifiers = new Array();
@@ -301,8 +302,8 @@ export class Preprocessor {
       const curLexemIdent = (lexemType === LexemType.LEXEM_IDENTIFIER) ? true : false;
       const curLexemJump = ((lexemType >= LexemType.LEXEM_OP_JMP) && (lexemType < LexemType.LEXEM_OP_LAST)) ? true : false;
 
-      // const strLexType = lexParser.getStringByLexem(lexemType);
-      // console.log(`CUR: [${strLexemToParse}] , [${strLexType}]`);
+      // console.log(`Preprocessor. strLexemToParse = ${strLexemToParse}`);
+      // console.log(`Preprocessor. lexemType = ${lexParser.getStringByLexem(lexemType)}`);
 
       // skip spaces: ' ', '\n'
       let iNextS = iNext;
@@ -316,8 +317,8 @@ export class Preprocessor {
       const strLexemToParseNext = strSrc.substring(iNextS, iNextS + len);
       const lexemTypeNext = lexParser.getLexemByString(strLexemToParseNext);
 
-      // const strLexT = lexParser.getStringByLexem(lexemTypeNext);
-      // console.log(`NEX: [${strLexemToParseNext}] , [${strLexT}]`);
+      // console.log(`Preprocessor. strLexemToParseNext = ${strLexemToParseNext}`);
+      // console.log(`Preprocessor. lexemType = ${lexParser.getStringByLexem(lexemTypeNext)}`);
 
       // check Label :
       if (lexemType === LexemType.LEXEM_COLON) {
@@ -341,7 +342,7 @@ export class Preprocessor {
             this.m_strErr = `${strA} ${strB}`;
           }
           return '';
-        }       // if (prev lexem was not identifier)
+        } // if (prev lexem was not identifier)
         // add identifier
         const isPrevDelim = this.getNextDelimiter(strSrc, isPrev);
         const strLexemIdentifier = strSrc.substring(isPrev, isPrevDelim);
@@ -353,7 +354,8 @@ export class Preprocessor {
       // if separated identifier
       if (curLexemIdent && !prevLexemJump && (lexemTypeNext !== LexemType.LEXEM_COLON)) {
         if (isPrev === 0) {
-          this.m_strErr = `Label should be finished with ':' in line ${lineNumber}`;
+          this.m_strErr = `Label should be finished with ':' in line ${lineNumber}, code=${strSrc}`;
+          // console.log(this.m_strErr);
         } else {
           strIdent = '';
           let j;
@@ -400,6 +402,7 @@ export class Preprocessor {
       const strLexemToParse = strSrc.substring(i, i + len);
       const lexemType = lexParser.getLexemByString(strLexemToParse);
       const curLexemJump = ((lexemType >= LexemType.LEXEM_OP_JMP) && (lexemType < LexemType.LEXEM_OP_LAST)) ? true : false;
+
       if ((lexemType === LexemType.LEXEM_IDENTIFIER) && prevLexemJump) {
         // find identifier in identifier list, already collected by labels
         strIdent = '';

@@ -1,11 +1,15 @@
-[
-  {
-    "code": "; this is test example\r\nmov EAX, 0\r\ndec ECX",
-    "id": "555"
-  },
-  {
-    "code": "dec ECX",
-    "id": "556"
-  }
-  
-]
+{
+  "tests": 
+  [
+    {
+      "id": "0",
+      "code": "mov EAX, 2\ninc EAX",
+      "resEAX": "3"
+    },
+    {
+      "id": "1",
+      "code": "mov ECX, 8\nmov EAX, ECX",
+      "resEAX": "8"
+    }
+  ]
+}

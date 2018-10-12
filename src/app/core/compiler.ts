@@ -1127,39 +1127,47 @@ export class Compiler {
   public preprocessCode(strCodeSource) {
     const prep = new Preprocessor();
     const strWithoutComments = prep.removeComments(strCodeSource);
+    // console.log(`Compiler. preprocessCode. strWithoutComments = ${strWithoutComments}`);
     if (strWithoutComments.length === 0) {
       this.m_strErr = 'Error duting remove comments';
       return strWithoutComments;
     }
     const isGoodCharsInCode = prep.checkInvalidCharacters(strWithoutComments);
+    // console.log(`Compiler. preprocessCode. isGoodCharsInCode = ${isGoodCharsInCode}`);
     if (!isGoodCharsInCode) {
       console.log('Comipler.createCode: bad chars found');
       this.m_strErr = 'Comipler.createCode: bad chars found';
       return '';
     }
     const isGoodIdentLen = prep.checkMaxIdentifierLength(strWithoutComments);
+    // console.log(`Compiler. preprocessCode. isGoodIdentLen = ${isGoodIdentLen}`);
     if (!isGoodIdentLen) {
       console.log('Comipler.createCode: too long identifiers found');
       this.m_strErr = 'Comipler.createCode: too long identifiers found';
       return '';
     }
     const isGoodDigLabels = prep.checkDigitalLabels(strWithoutComments);
+    // console.log(`Compiler. preprocessCode. isGoodDigLabels = ${isGoodDigLabels}`);
     if (!isGoodDigLabels) {
       console.log('Comipler.createCode: has bad digital labels');
       this.m_strErr = 'Comipler.createCode: has bad digital labels';
       return '';
     }
+    // console.log(`Compiler. preprocessCode. strWithoutComments = ${strWithoutComments}`);
     const strLabelsReplacedToInts = prep.replaceLabelsToInts(strWithoutComments);
     this.m_strErr = '';
+    if (prep.m_strErr.length !== 0) {
+      this.m_strErr = prep.m_strErr;
+    }
     return strLabelsReplacedToInts;
   }
 
   public createCode(strTaskCode, instrSet) {
     const strPrepCode = this.preprocessCode(strTaskCode);
+    // console.log(`Compiler.createCode. After prerocessing = ${strPrepCode}`);
     if (strPrepCode.length < 1) {
       return false;
     }
-    // console.log(`Compiler.createCode. After prerocessing = ${strPrepCode}`);
     const res = this.createInstructionSet(strPrepCode, instrSet);
     return res;
   }
