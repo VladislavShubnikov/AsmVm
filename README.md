@@ -2,6 +2,9 @@
 
 Assembler Virtual Machine (very limited CPU emulation) run inside Angular environment. This app allow to compile and run step-by-step simple assempler code.
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.2.1.
+In fact, this is not classic "Virtual Machine": source code is not compiled into actual processor instruction set. Instead, source code is compiled into some
+internal instruction representation, and then you can run all instruction set as usual program or step by step (like many debuggers offer). This project is
+targeted mainly for educational purposes.
 
 ![Background image](src/logo_page.jpg)
 
@@ -9,7 +12,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ### Overview
 
 This project can run basic intel-based cpu commands like add, mov, inc, etc. Working with 32 bit data and registers only. You can use this project
-as a virtual assembler machine inside web browser app.
+as a virtual assembler machine inside web browser app. 
 
 ## Working web-app demonstration
 Preliminary demonstration is available in:
