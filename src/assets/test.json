@@ -3,11 +3,13 @@
   [
     {
       "id": "0",
-      "code": "mov EAX, 2\ninc EAX",
+      "descr": "Task: find sum of the input 32-bit integer array, addressed in ESP.",
+      "code": "xor EAX, EAX\nlabelAgain :\nadd EAX, DWORD PTR [ESI + ECX*4 - 4]\ndec ECX\njnz labelAgain",
       "resEAX": "3"
     },
     {
       "id": "1",
+      "descr": "TODO: later",
       "code": "mov ECX, 8\nmov EAX, ECX",
       "resEAX": "8"
     }

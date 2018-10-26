@@ -1,26 +1,19 @@
-<div class="card">
-  <div class="card-title">
-    <h4>
-      <i class="fa fa-file"></i>
-      Console
-    </h4>
-  </div>
-  <div class="card-body">
-    <table class="table table-bordered table-stripped">
-      <tbody>
-      
-        <tr *ngFor="let txtConsole of m_consoleText">
-          <td>
-            {{txtConsole}}
-          </td>
-        </tr>
-        
-      </tbody>
-    </table>
-    <button (click)="onClickClearConsole()" class="btn btn-success">
-      Clear console
-    </button>
+<h4>
+  {{m_strConsoleTitle}}
+</h4>
+<table class="table table-bordered table-stripped">
+  <tbody>
+  
+    <tr *ngFor="let txtConsole of m_consoleText">
+      <td>
+        {{txtConsole}}
+      </td>
+    </tr>
+    
+  </tbody>
+</table>
+<button (click)="onClickClearConsole()" class="btn btn-success">
+  {{m_strClearConsole}}
+</button>
 
-  </div>
-</div>  
 

@@ -1,0 +1,126 @@
+<h4>
+  {{m_title}}
+</h4>
+
+<table class="table table-bordered table-condensed">
+  <thead>
+    <tr class="text-success">
+      <th>
+        {{m_strOffset}}
+      </th>
+      <th>
+        0x00
+      </th>
+      <th>
+        0x01
+      </th>
+      <th>
+        0x02
+      </th>
+      <th>
+        0x03
+      </th>
+      <th>
+        0x04
+      </th>
+      <th>
+        0x05
+      </th>
+      <th>
+        0x06
+      </th>
+      <th>
+        0x07
+      </th>
+      
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="text-success">
+        0x00
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 0) && (i < 8)">
+         {{item}}
+        </td>
+      </ng-container>
+    <tr>
+      <td class="text-success">
+        0x08
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 8) && (i < 16)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+
+    <tr>
+      <td class="text-success">
+        0x10
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 16) && (i < 24)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+
+    <tr>
+      <td class="text-success">
+        0x18
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 24) && (i < 32)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+    
+    <tr>
+      <td class="text-success">
+        0x20
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 32) && (i < 40)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+
+    <tr>
+      <td class="text-success">
+        0x28
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 40) && (i < 48)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+
+    <tr>
+      <td class="text-success">
+        0x40
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 48) && (i < 56)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+
+    <tr>
+      <td class="text-success">
+        0x48
+      </td>
+      <ng-container *ngFor="let item of m_dataView; let i = index">
+        <td *ngIf="(i >= 56) && (i < 64)">
+         {{item}}
+        </td>
+      </ng-container>
+    </tr>
+    
+  </tbody>
+</table>

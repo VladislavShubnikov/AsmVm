@@ -3,6 +3,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { VirtualMachineComponent } from './virtual-machine.component';
 import { InstrSetComponent } from '../instrset/instrset.component';
+import { RegistersComponent } from '../registers/registers.component';
+import { MemoryViewerComponent } from '../memoryviewer/memoryviewer.component';
+import { ConsoleComponent } from '../console/console.component';
+
 import { LexemType } from '../core/lexemtype';
 import { Compiler } from '../core/compiler';
 import { Register } from '../core/register';
@@ -19,7 +23,8 @@ describe('VirtualMachineComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [ HttpClientTestingModule ],
-      declarations: [ VirtualMachineComponent ]
+      declarations: [ VirtualMachineComponent, InstrSetComponent,
+        RegistersComponent, MemoryViewerComponent, ConsoleComponent ]
     })
     .compileComponents();
   }));

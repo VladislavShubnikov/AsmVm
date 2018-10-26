@@ -11,10 +11,36 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 This project can run basic intel-based cpu commands like add, mov, inc, etc. Working with 32 bit data and registers only. You can use this project
 as a virtual assembler machine inside web browser app.
 
+## Working web-app demonstration
+Preliminary demonstration is available in:
+http://d-inter.ru/private/Vlad/nirs/2018_AsmVm/AsmVm/
+
 ### Implementation notes
 
 Will be later
 
+### Implementation restiction
+1. Only russian language is supported in interface.
+2. Only very limited set of Intel CPU instructions are supported.
+3. No flags register visualization.
+4. No coloring for the modified values
+
+
+## Prerequisites
+
+### Node.js and Tools
+
+Download link:
+[NodeJS](https://nodejs.org/en/download/).
+
+Version not below than v.10.10.0 is required.
+
+After NodeJS installation please check that everything is installed correctly (for example, PATH ), using command:
+```
+node --version
+```
+Stdout should be
+v10.10.0 (or higher).
 
 ## Start working with project
 
@@ -37,6 +63,10 @@ Run `ng lint` to compile project source codes.
 ## Build
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Better way for final deployment is command:
+```
+ng build --prod --base-href https://your.site/somefolder/
+```
 
 ## Running unit tests
 

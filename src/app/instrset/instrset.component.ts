@@ -22,14 +22,23 @@ export class InstrSetComponent implements OnInit {
   // Data
   // ********************************************************
 
-  m_instructions: InstructionComponent[];
-  m_instrLines: string[];
-  m_currentLine: number;
+  public m_strUp: string;
+  public m_strDown: string;
+  public m_strCompiledCode: string;
+
+  public m_instructions: InstructionComponent[];
+  public m_instrLines: string[];
+  public m_currentLine: number;
 
   // ********************************************************
   // Methods
   // ********************************************************
   constructor() {
+
+    this.m_strUp = 'Вверх';
+    this.m_strDown = 'Вниз';
+    this.m_strCompiledCode = 'Скомпилированный код';
+
     this.m_currentLine = 0;
     this.m_instructions = [];
     this.m_instrLines = new Array(InstrSetComponent.NUM_LINES);
@@ -55,7 +64,7 @@ export class InstrSetComponent implements OnInit {
       strCode += '\n';
     }
     // test. compile code
-    this.compilefromSource(strCode);
+    this.compileFromSource(strCode);
   }
 
   ngOnInit() {
@@ -80,8 +89,11 @@ export class InstrSetComponent implements OnInit {
     }
   }
 
-  compilefromSource(strAsmText) {
+  public compileFromSource(strAsmText) {
+    // empty instr set
     this.m_instructions = [];
+    this.m_instrLines = [];
+
     const compiler = new Compiler();
     const errCompileBool = compiler.createCode(strAsmText, this);
     if (!errCompileBool) {

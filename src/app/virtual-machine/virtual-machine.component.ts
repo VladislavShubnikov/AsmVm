@@ -2,7 +2,7 @@
 // Imports
 // ********************************************************
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
 
@@ -12,9 +12,17 @@ import { RegFlags } from '../core/regflags';
 import { OperandType } from '../core/operandtype';
 import { LexemType } from '../core/lexemtype';
 import { LexemParser } from '../core/lexemparser';
+import { RandomComponent } from '../random/random.component';
 import { InstructionComponent } from '../instruction/instruction.component';
 import { InstrSetComponent } from '../instrset/instrset.component';
+import { RegistersComponent } from '../registers/registers.component';
+import { MemoryViewerComponent } from '../memoryviewer/memoryviewer.component';
+import { ConsoleComponent } from '../console/console.component';
 // import { TestService } from '../services/testservice';
+
+// ********************************************************
+// Consts
+// ********************************************************
 
 
 const KBYTE = 1024;
@@ -25,6 +33,8 @@ const FAIL = -1;
 const MAX_EMULATOR_DATA_SIZE = (KBYTE * NUM_64);
 const MAX_EMULATOR_STACK_SIZE = (KBYTE * TWO);
 const MAX_INSTRUCTIONS_CAN_BE_PERFORMED = 16000;
+
+const CODE_NUM_ITERATIONS = 3;
 
 
 type BackendCallback = (instr: InstructionComponent) => number;
@@ -53,19 +63,44 @@ export class VirtualMachineComponent implements OnInit {
   // Data
   // ********************************************************
 
+  // string data for visualize
+  m_strTitle: string;
+  m_strRun: string;
+  m_strStep: string;
+
   m_registers: number[];
   m_regFlags: number;
+  // each element is byte: [0..255]
   m_data: number[];
   m_instrSet: InstrSetComponent;
   m_curInstructionIndex: number;
   m_strErr: string;
-  m_codeFinished: boolean;
-  m_numInstructionsPerformed: number;
 
   m_backends: BackendCallback[];
 
   m_codeTests: TestSingle[];
   // m_service: TestService;
+
+  // run state
+  m_isRunning: boolean;
+  m_numPerformedInstructions: number;
+  m_codeFinished: boolean;
+  m_numInstructionsPerformed: number;
+
+  // ******************************
+  // Child components
+  // ******************************
+  @ViewChild(InstrSetComponent)
+  m_instrSetChild: InstrSetComponent;
+
+  @ViewChild(RegistersComponent)
+  m_registersChild: RegistersComponent;
+
+  @ViewChild(MemoryViewerComponent)
+  m_memoryViewerChild: MemoryViewerComponent;
+
+  @ViewChild(ConsoleComponent)
+  m_consoleChild: ConsoleComponent;
 
   // ********************************************************
   // Methods
@@ -86,6 +121,27 @@ export class VirtualMachineComponent implements OnInit {
       const numElems = arr.length;
       this.m_codeTests = arr;
       console.log(`VM. ngOnInit. Read json. numElems = ${numElems}`);
+
+      // get 0-th test example from json test file
+      const codeToCompile = arr[0].code;
+      // assign to instruction set component
+      this.m_instrSetChild.compileFromSource(codeToCompile);
+
+      // init registers
+      this.m_registers[Register.REG_ECX] = CODE_NUM_ITERATIONS;
+      this.m_registers[Register.REG_ESI] = 0;
+
+      // assign registers
+      for (let i = 0; i < Register.REG_COUNT; i++) {
+        this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
+      }
+      // assign instruction set
+      this.setupInstructionSet(this.m_instrSetChild);
+
+      // assign memory
+      const DATA_SZ_ALL = VirtualMachineComponent.MAX_EMULATOR_DATA_SIZE +
+        VirtualMachineComponent.MAX_EMULATOR_STACK_SIZE;
+      this.m_memoryViewerChild.setData(this.m_data, DATA_SZ_ALL);
     },
     err => {
       console.log(`VM. ngOnInit. Read Json error = ${err}`);
@@ -94,11 +150,17 @@ export class VirtualMachineComponent implements OnInit {
 
   constructor(private http: HttpClient) {
 
+    this.m_strTitle = 'Виртуальная машина ассемблера';
+    this.m_strRun = 'Играть';
+    this.m_strStep = 'Шаг  ';
+    this.m_isRunning = false;
+    this.m_numPerformedInstructions = 0;
+
     // init code tests with some trash data
     this.m_codeTests = new Array(1);
     const ID = 55;
     const RES = 555;
-    this.m_codeTests[0] = {id: ID, code: 'Here code', resEAX: RES};
+    this.m_codeTests[0] = {id: ID, descr: 'Some descr', code: 'Here code', resEAX: RES};
 
     this.m_curInstructionIndex = 0;
     this.m_codeFinished = false;
@@ -109,11 +171,22 @@ export class VirtualMachineComponent implements OnInit {
       this.m_registers[i] = 0;
     }
     this.m_regFlags = 0;
+    const rnd = new RandomComponent();
+    rnd.initRandomSeed();
     const DATA_SZ_ALL = VirtualMachineComponent.MAX_EMULATOR_DATA_SIZE +
       VirtualMachineComponent.MAX_EMULATOR_STACK_SIZE;
     this.m_data = new Array(DATA_SZ_ALL);
+    const MAX_BYTE_VAL = 255;
+    const MASK_THREE = 3;
     for (i = 0; i < DATA_SZ_ALL; i++) {
-      this.m_data[i] = 0;
+      // tslint:disable-next-line:no-bitwise
+      if ((i & MASK_THREE) === 0) {
+        // tslint:disable-next-line:no-bitwise
+        const s = rnd.getNextRandomInt() & MAX_BYTE_VAL;
+        this.m_data[i] = s;
+      } else {
+        this.m_data[i] = 0;
+      }
     }
     // init esp register to max possible stack value
     this.m_registers[Register.REG_ESP] = DATA_SZ_ALL;
@@ -133,6 +206,108 @@ export class VirtualMachineComponent implements OnInit {
     this.m_backends[LexemType.LEXEM_OP_MUL] = this.instrMul;
     this.m_backends[LexemType.LEXEM_OP_DIV] = this.instrDiv;
     this.m_backends[LexemType.LEXEM_OP_MOV] = this.instrMov;
+  }
+  private prepareToStartRunOrFirstStep() {
+    // prepare registers
+    this.m_registers[Register.REG_ECX] = CODE_NUM_ITERATIONS;
+    this.m_registers[Register.REG_ESI] = 0;
+
+    // prepare to start running step-by-step
+    this.m_isRunning = true;
+    this.m_numPerformedInstructions = 0;
+    this.m_curInstructionIndex = 0;
+    this.m_codeFinished = false;
+  }
+
+  public onClickButtonRun() {
+    if (this.m_isRunning) {
+      console.log('onClickButtonRun: already running');
+      return;
+    }
+    // console.log('onClickButtonRun');
+    this.prepareToStartRunOrFirstStep();
+    this.m_consoleChild.clear();
+    const numInstructionsInSet = this.m_instrSet.m_instructions.length;
+    const strMsg = `Старт выполнения ${numInstructionsInSet} инструкций...`;
+    this.m_consoleChild.addString(strMsg);
+
+    const TIME_DELAY = 400;
+    const timerObj = setInterval( () => {
+      // perform one sigle step of current instruction execution
+      this.performInstruction();
+      if (this.m_strErr.length !== 0) {
+        this.m_codeFinished = true;
+      }
+      if (this.m_codeFinished) {
+        clearInterval(timerObj);
+        // update visual repr
+        if (this.m_strErr.length !== 0) {
+          this.m_isRunning = false;
+          this.m_codeFinished = true;
+          const strMsgErr = `ВМ. Ошибка выполнения = ${this.m_strErr}`;
+          this.m_consoleChild.addString(strMsgErr);
+          console.log(strMsg);
+          return;
+        }
+        if (this.m_curInstructionIndex >= numInstructionsInSet) {
+          this.m_isRunning = false;
+          this.m_codeFinished = true;
+          const strMsg1 = `ВМ. Выполнено ${this.m_numPerformedInstructions} инструкций кода`;
+          this.m_consoleChild.addString(strMsg1);
+          console.log(strMsg1);
+          const strMsg2 = `ВМ. Исходных ${numInstructionsInSet} инструкций`;
+          this.m_consoleChild.addString(strMsg2);
+          console.log(strMsg2);
+        } // if finish iunstr set
+      } else {
+        // update visuals: isntr set
+        this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
+        // update visuals: registers
+        for (let i = 0; i < Register.REG_COUNT; i++) {
+          this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
+        } // for i all registers
+      } // if code not finished
+    }, TIME_DELAY);
+
+    /*
+    */
+  }
+
+  public onClickButtonStep() {
+    // console.log('onClickButtonStep');
+    const numInstructionsInSet = this.m_instrSet.m_instructions.length;
+    if (!this.m_isRunning) {
+      this.prepareToStartRunOrFirstStep();
+      this.m_consoleChild.clear();
+      const strMsg = `Старт выполнения ${numInstructionsInSet} инструкций...`;
+      this.m_consoleChild.addString(strMsg);
+    }
+
+    this.performInstruction();
+    if (this.m_strErr.length !== 0) {
+      this.m_isRunning = false;
+      this.m_codeFinished = true;
+      const strMsg = `ВМ. Ошибка выполнения = ${this.m_strErr}`;
+      this.m_consoleChild.addString(strMsg);
+      console.log(strMsg);
+      return;
+    }
+    if (this.m_curInstructionIndex >= numInstructionsInSet) {
+      this.m_isRunning = false;
+      this.m_codeFinished = true;
+      const strMsg1 = `ВМ. Выполнено ${this.m_numPerformedInstructions} инструкций кода`;
+      this.m_consoleChild.addString(strMsg1);
+      console.log(strMsg1);
+      const strMsg2 = `ВМ. Исходных ${numInstructionsInSet} инструкций`;
+      this.m_consoleChild.addString(strMsg2);
+      console.log(strMsg2);
+    }
+    // update visuals: isntr set
+    this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
+    // update visuals: registers
+    for (let i = 0; i < Register.REG_COUNT; i++) {
+      this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
+    }
   }
 
   getInstructionIndexByLabel(labelNumber) {
@@ -836,8 +1011,12 @@ export class VirtualMachineComponent implements OnInit {
   * Perform current instruction (run and modify instruction pointer)
   */
   performInstruction() {
-    const instr = this.m_instrSet.m_instructions[this.m_curInstructionIndex];
     const numInstructions = this.m_instrSet.m_instructions.length;
+    // check end of code
+    if (this.m_curInstructionIndex >= numInstructions) {
+      this.m_codeFinished = true;
+    }
+    const instr = this.m_instrSet.m_instructions[this.m_curInstructionIndex];
     // is this nop instruction
     if (instr.m_instruction === LexemType.LEXEM_OP_NOP) {
       this.m_curInstructionIndex++;
@@ -860,6 +1039,8 @@ export class VirtualMachineComponent implements OnInit {
     if ((this.m_curInstructionIndex === numInstructions) && (!this.m_codeFinished)) {
       this.m_codeFinished = true;
     }
+    // increment number of performed instructions in VM
+    this.m_numPerformedInstructions++;
   }
 
   /**

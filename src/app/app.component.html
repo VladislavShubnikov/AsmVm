@@ -5,7 +5,7 @@
 
   <div class="text-center">
     <h1>
-      This is {{ m_title }} !
+      {{ m_strTitle }}
     </h1>
   </div>
 
@@ -13,7 +13,7 @@
 
     <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6 w-50">
       <p>
-        Enter asm code
+        Введите код на ассемблере
       </p>
 
       <textarea (keyup)="onKey($event)" name="textScr" rows="14"  >
@@ -22,13 +22,13 @@
 
       <br>
       <button (click)="onClickMe()" class="btn btn-success">
-        Run code
+        Запуск предобработки кода
       </button>
     </div>
     
     <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6 w-50">
       <p>
-        Preprocessed code
+        Предобработанный код
       </p>
       <textarea name="textScr" rows="14" id="textPreprocessed" >
         {{m_strInputPreprocessed}}
@@ -40,41 +40,25 @@
   </div>
 
   <p>
-  Was input:
+  Было введено:
   {{m_strInput}}
   </p>
 
   <p>
-  Click counter:
+  Счетчик нажатий:
   {{m_clickMessage}}
   </p>
-
-  <div class="row">
-
-    <div class="col-6">
-      <app-instrset>
-      </app-instrset>
-    </div>
-    <div class="col-6">
-      <app-registers>
-      </app-registers>
-    </div>
-
-  </div>
 
 
   <app-instruction>
   </app-instruction>
-
-  <app-console>
-  </app-console>
 
   <app-virtual-machine>
   </app-virtual-machine>
 
 
   <p>
-  Below progress bar:
+  Прогресс загрузки:
   </p>
 
   <div class="progress">
@@ -83,17 +67,17 @@
 
 
   <p>
-  End of progress bar
+  Конец прогресса
   </p>
 
   <div class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-      Dropdown
+      Меню
     </button>
     <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
-      <button class="dropdown-item" type="button">Action</button>
-      <button class="dropdown-item active" type="button">Another action</button>
-      <button class="dropdown-item" type="button">Something else here</button>
+      <button class="dropdown-item" type="button">Действие</button>
+      <button class="dropdown-item active" type="button">Еще действие</button>
+      <button class="dropdown-item" type="button">Чего-нибудь</button>
     </div>
   </div>
 

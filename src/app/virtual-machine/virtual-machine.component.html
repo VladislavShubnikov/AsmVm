@@ -2,7 +2,7 @@
   <div class="card-title">
     <h4>
       <i class="fa fa-cogs"></i>
-      Virtual Machine
+      {{m_strTitle}}
     </h4>
   </div>
   <div class="card-body">
@@ -10,6 +10,53 @@
     <p>
       EAX = {{m_codeTests[0].resEAX}}
     </p>
+
+  <table class="table">
+    <tbody>
+      <tr>
+        <td class="col-1">
+  
+          <button type="button" class="btn btn-primary" (click)="onClickButtonRun()">
+            <i class="fa fa-arrow-circle-down">
+            </i>
+            {{m_strRun}}
+          </button>
+          
+        </td>
+        <td class="col-1">
+
+          <button type="button" class="btn btn-primary" (click)="onClickButtonStep()">
+            <i class="fa fa-arrow-circle-down">
+            </i>
+            {{m_strStep}}
+          </button>
+
+        </td>
+        <td class="col-10">
+        </td>
+        
+      </tr>
+    </tbody>
+  </table>
+
+    
+  <div class="row">
+    <div class="col-6">
+      <app-instrset>
+      </app-instrset>
+    </div>
+    <div class="col-6">
+      <app-registers>
+      </app-registers>
+    </div>
+  </div>
+  
+  <app-console>
+  </app-console>
+
+  <app-memoryviewer>
+  </app-memoryviewer>
+  
   </div>
 </div>
 

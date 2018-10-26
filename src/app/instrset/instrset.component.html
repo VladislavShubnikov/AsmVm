@@ -1,56 +1,45 @@
-<div class="card">
-  <div class="card-title">
-    <h4>
-      <i class="fa fa-list-alt"></i>
-      Instruction set
-    </h4>
-  </div>
-  <div class="card-body">
-  
-    <table class="table">
-      <tbody>
-        <tr>
-          <td>
-            <button type="button" class="btn btn-primary" (click)="onClickButtonDown()" >
-              <i class="fa fa-arrow-circle-down">
-              </i>
-              Down
-            </button>
-            
-          </td>
-          <td>
-            <button type="button" class="btn btn-primary" (click)="onClickButtonUp()">
-              <i class="fa fa-arrow-circle-up">
-              </i>
-              Up
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+<table class="table">
+  <tbody>
+    <tr>
+      <td>
+        <button type="button" class="btn btn-primary" (click)="onClickButtonDown()" >
+          <i class="fa fa-arrow-circle-down">
+          </i>
+          {{m_strDown}}
+        </button>
+        
+      </td>
+      <td>
+        <button type="button" class="btn btn-primary" (click)="onClickButtonUp()">
+          <i class="fa fa-arrow-circle-up">
+          </i>
+          {{m_strUp}}
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+<table class="table table-bordered table-condensed">
+  <thead>
+    <tr>
     
-  
-    <table class="table table-bordered table-condensed">
-      <thead>
-        <tr>
-        
-          <th>
-            compiled code
-          </th>
-          
-        </tr>
-      </thead>
-      <tbody>
+      <th>
+        {{m_strCompiledCode}}
+      </th>
       
-        <tr *ngFor="let str of m_instrLines; index as i" [class.table-success]=isSelected(i)>
-          <td>
-            {{m_instrLines[i]}}
-          </td>
-        </tr>
-        
-        
-      </tbody>
-    </table>
-  </div>
-</div>
+    </tr>
+  </thead>
+  <tbody>
+  
+    <tr *ngFor="let str of m_instrLines; index as i" [class.table-success]=isSelected(i)>
+      <td>
+        {{m_instrLines[i]}}
+      </td>
+    </tr>
+    
+    
+  </tbody>
+</table>
 

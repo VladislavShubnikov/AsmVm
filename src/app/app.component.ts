@@ -14,11 +14,13 @@ export class AppComponent {
   // *****************************
   // Data
   // *****************************
-  m_title: string;
-  m_clickMessage: string;
-  m_clickCounter: number;
-  m_strInput: string;
-  m_strInputPreprocessed: string;
+
+  public m_strTitle: string;
+
+  public m_clickMessage: string;
+  public m_clickCounter: number;
+  public m_strInput: string;
+  public m_strInputPreprocessed: string;
   // m_service: Service;
 
   // *****************************
@@ -29,7 +31,8 @@ export class AppComponent {
     // const tests = require('../../assets/test.json');
     // this.m_service = new Service();
 
-    this.m_title = 'Assembler virtual machine';
+    this.m_strTitle = 'Виртуальная машина ассемблера';
+
     this.m_clickMessage = 'Before click';
     this.m_clickCounter = 0;
     this.m_strInput = 'LabelAgain:\n\

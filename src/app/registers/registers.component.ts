@@ -15,6 +15,10 @@ export class RegistersComponent implements OnInit {
   // ********************************************************
   // Data
   // ********************************************************
+
+  m_strHex: string;
+  m_strDec: string;
+
   m_registersCpu:     number[];
   m_registersCpuHex:  string[];
 
@@ -23,6 +27,9 @@ export class RegistersComponent implements OnInit {
   // ********************************************************
 
   constructor() {
+    this.m_strHex = 'Шестн';
+    this.m_strDec = 'Десят';
+
     this.m_registersCpu = new Array(Register.REG_COUNT);
     this.m_registersCpuHex = new Array(Register.REG_COUNT);
     let i;
@@ -37,6 +44,16 @@ export class RegistersComponent implements OnInit {
       this.m_registersCpuHex[i] = this.getHexStringFromDec(this.m_registersCpu[i]);
     }
   }
+
+  public setIndividualRegisterValue(indexReg, val) {
+    if ((indexReg < 0) || (indexReg >= Register.REG_COUNT)) {
+      console.log(`setIndividualRegisterValue. invalid register index: ${indexReg}`);
+      return;
+    }
+    this.m_registersCpu[indexReg] = val;
+    this.m_registersCpuHex[indexReg] = this.getHexStringFromDec(this.m_registersCpu[indexReg]);
+  }
+
   getHexStringFromDec(valDec) {
     if (valDec < 0) {
       const NEG_MAG = 0xFFFFFFFF;
