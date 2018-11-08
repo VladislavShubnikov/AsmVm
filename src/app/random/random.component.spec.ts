@@ -36,5 +36,5 @@ describe('RandomComponent', () => {
     // console.log(`rnd. sequenceLength = ${sequenceLength}`);
     expect(sequenceLength >= EXPECT_SEQ_LEN).toEqual(true);
   });
-  
+
 });

@@ -1,13 +1,12 @@
 
-const BIT_CARRY = 0;
-const BIT_PARITY = 2;
-const BIT_ADJUST = 4;
-const BIT_ZERO = 6;
-const BIT_SIGN = 7;
-const BIT_DIRECTION = 10;
-const BIT_OVERFLOW = 11;
-
 export enum RegFlags {
+  BIT_CARRY = 0,
+  BIT_PARITY = 2,
+  BIT_ADJUST = 4,
+  BIT_ZERO = 6,
+  BIT_SIGN = 7,
+  BIT_DIRECTION = 10,
+  BIT_OVERFLOW = 11,
   /* tslint:disable-next-line */
   FLAG_CARRY      = (1 << BIT_CARRY),
   /* tslint:disable-next-line */

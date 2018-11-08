@@ -16,7 +16,7 @@ export class InstrSetComponent implements OnInit {
   // Const
   // ********************************************************
 
-  static readonly NUM_LINES = 12;
+  static readonly NUM_VISIBLE_LINES = 12;
 
   // ********************************************************
   // Data
@@ -29,6 +29,7 @@ export class InstrSetComponent implements OnInit {
   public m_instructions: InstructionComponent[];
   public m_instrLines: string[];
   public m_currentLine: number;
+  public m_topLine: number;
 
   // ********************************************************
   // Methods
@@ -39,10 +40,14 @@ export class InstrSetComponent implements OnInit {
     this.m_strDown = 'Вниз';
     this.m_strCompiledCode = 'Скомпилированный код';
 
+    // top visible source line
+    this.m_topLine = 0;
+    // current executed line from source (relative to m_topLine)
     this.m_currentLine = 0;
+
     this.m_instructions = [];
-    this.m_instrLines = new Array(InstrSetComponent.NUM_LINES);
-    for (let i = 0; i < InstrSetComponent.NUM_LINES; i++) {
+    this.m_instrLines = new Array(InstrSetComponent.NUM_VISIBLE_LINES);
+    for (let i = 0; i < InstrSetComponent.NUM_VISIBLE_LINES; i++) {
       this.m_instrLines[i] = '';
     }
 
@@ -55,7 +60,15 @@ export class InstrSetComponent implements OnInit {
       '  dec ECX',
       '  jnz LabelAgain',
       'LabelQuit:',
-      '  xor ECX, ECX'
+      '  xor ECX, ECX',
+      '  add EAX, 8',
+      '  add EAX, 9',
+      '  add EAX, 10',
+      '  add EAX, 11',
+      '  add EAX, 12',
+      '  add EAX, 13',
+      '  add EAX, 14',
+      '  add EAX, 15',
     ];
     // test. build single string
     let strCode = '';
@@ -77,15 +90,56 @@ export class InstrSetComponent implements OnInit {
   }
   onClickButtonDown() {
     const numCompiledLines = this.m_instructions.length;
-    const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_LINES) ?
-      numCompiledLines : InstrSetComponent.NUM_LINES;
-    if (this.m_currentLine < numLinesToShow - 1) {
+    if (this.m_currentLine + this.m_topLine < numCompiledLines - 1) {
       this.m_currentLine++;
+      if (this.m_currentLine >= InstrSetComponent.NUM_VISIBLE_LINES) {
+        this.m_topLine++;
+        this.m_currentLine--;
+        this.fillLines();
+      }
+      // console.log(`onClickButtonDown. top = ${this.m_topLine} cur = ${this.m_currentLine}`);
     }
   }
   onClickButtonUp() {
     if (this.m_currentLine > 0) {
       this.m_currentLine--;
+    } else {
+      // current is top line
+      if (this.m_topLine > 0) {
+        this.m_topLine--;
+        this.fillLines();
+      }
+    }
+    // console.log(`onClickButtonUp. top = ${this.m_topLine} cur = ${this.m_currentLine}`);
+  }
+  public setCurrentLine(lineIndex: number) {
+    if (lineIndex < this.m_topLine) {
+      this.m_topLine = lineIndex;
+      this.m_currentLine = 0;
+      this.fillLines();
+    } else if (lineIndex - this.m_topLine < InstrSetComponent.NUM_VISIBLE_LINES) {
+      this.m_currentLine = lineIndex - this.m_topLine;
+    } else {
+      this.m_currentLine = InstrSetComponent.NUM_VISIBLE_LINES - 1;
+      this.m_topLine = lineIndex - (InstrSetComponent.NUM_VISIBLE_LINES - 1);
+      this.fillLines();
+    }
+    // console.log(`setCurrentLine. top = ${this.m_topLine} cur = ${this.m_currentLine}`);
+  }
+
+  private fillLines() {
+    const numCompiledLines = this.m_instructions.length;
+    const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_VISIBLE_LINES) ?
+      numCompiledLines : InstrSetComponent.NUM_VISIBLE_LINES;
+    for (let i = 0; i < numLinesToShow; i++) {
+      const indexLineSrc = this.m_topLine + i;
+      if ((indexLineSrc >= 0) && (indexLineSrc < numCompiledLines)) {
+        const instr = this.m_instructions[indexLineSrc];
+        const str = instr.getString();
+        this.m_instrLines[i] = str;
+      } else {
+        this.m_instrLines[i] = '';
+      }
     }
   }
 
@@ -99,14 +153,20 @@ export class InstrSetComponent implements OnInit {
     if (!errCompileBool) {
       console.log(`Unexpected comple error = ${compiler.m_strErr}`);
     }
+    /*
     const numCompiledLines = this.m_instructions.length;
-    const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_LINES) ?
-      numCompiledLines : InstrSetComponent.NUM_LINES;
+    const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_VISIBLE_LINES) ?
+      numCompiledLines : InstrSetComponent.NUM_VISIBLE_LINES;
     for (let i = 0; i < numLinesToShow; i++) {
       const instr = this.m_instructions[i];
       const str = instr.getString();
       this.m_instrLines[i] = str;
     }
+    */
+    this.m_topLine = 0;
+    this.m_currentLine = 0;
+    this.fillLines();
   }
+
 
 }

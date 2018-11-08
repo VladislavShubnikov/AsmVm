@@ -18,6 +18,7 @@ import { InstrSetComponent } from '../instrset/instrset.component';
 import { RegistersComponent } from '../registers/registers.component';
 import { MemoryViewerComponent } from '../memoryviewer/memoryviewer.component';
 import { ConsoleComponent } from '../console/console.component';
+import { RegflagsComponent } from '../regflags/regflags.component';
 // import { TestService } from '../services/testservice';
 
 // ********************************************************
@@ -102,6 +103,9 @@ export class VirtualMachineComponent implements OnInit {
   @ViewChild(ConsoleComponent)
   m_consoleChild: ConsoleComponent;
 
+  @ViewChild(RegflagsComponent)
+  m_regFlagsChild: RegflagsComponent;
+
   // ********************************************************
   // Methods
   // ********************************************************
@@ -146,6 +150,31 @@ export class VirtualMachineComponent implements OnInit {
     err => {
       console.log(`VM. ngOnInit. Read Json error = ${err}`);
     });
+    // test set regflags
+    // tslint:disable-next-line:no-bitwise
+    // const FLAGS = RegFlags.FLAG_PARITY | RegFlags.FLAG_ZERO | RegFlags.FLAG_SIGN;
+    // this.m_regFlagsChild.setFlags(FLAGS);
+  }
+
+  setSourceCode(strCode: string) {
+    // console.log(`VM. setSourceCode = ${strCode}`);
+    // assign to instruction set component
+    this.m_instrSetChild.compileFromSource(strCode);
+    // init registers
+    this.m_registers[Register.REG_ECX] = CODE_NUM_ITERATIONS;
+    this.m_registers[Register.REG_ESI] = 0;
+
+    // assign registers
+    for (let i = 0; i < Register.REG_COUNT; i++) {
+      this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
+    }
+    // assign instruction set
+    this.setupInstructionSet(this.m_instrSetChild);
+
+    // assign memory
+    const DATA_SZ_ALL = VirtualMachineComponent.MAX_EMULATOR_DATA_SIZE +
+      VirtualMachineComponent.MAX_EMULATOR_STACK_SIZE;
+    this.m_memoryViewerChild.setData(this.m_data, DATA_SZ_ALL);
   }
 
   constructor(private http: HttpClient) {
@@ -261,7 +290,10 @@ export class VirtualMachineComponent implements OnInit {
         } // if finish iunstr set
       } else {
         // update visuals: isntr set
-        this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
+
+        // this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
+        this.m_instrSetChild.setCurrentLine(this.m_curInstructionIndex);
+
         // update visuals: registers
         for (let i = 0; i < Register.REG_COUNT; i++) {
           this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
@@ -302,8 +334,10 @@ export class VirtualMachineComponent implements OnInit {
       this.m_consoleChild.addString(strMsg2);
       console.log(strMsg2);
     }
-    // update visuals: isntr set
-    this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
+    // update visuals: instr set
+    // this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
+    this.m_instrSetChild.setCurrentLine(this.m_curInstructionIndex);
+
     // update visuals: registers
     for (let i = 0; i < Register.REG_COUNT; i++) {
       this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
@@ -473,8 +507,11 @@ export class VirtualMachineComponent implements OnInit {
         this.m_data[offsetDataBytes + OFF_1] = valB;
         this.m_data[offsetDataBytes + OFF_2] = valC;
         this.m_data[offsetDataBytes + OFF_3] = valD;
+        // update memory in visual
+        const DATA_SZ_ALL = VirtualMachineComponent.MAX_EMULATOR_DATA_SIZE +
+          VirtualMachineComponent.MAX_EMULATOR_STACK_SIZE;
+        this.m_memoryViewerChild.setData(this.m_data, DATA_SZ_ALL);
       }
-
     }
     return true;
   } // end of putDataToOperand
@@ -505,6 +542,10 @@ export class VirtualMachineComponent implements OnInit {
     this.m_data[offsetDataBytes + OFF_1] = valB;
     this.m_data[offsetDataBytes + OFF_2] = valC;
     this.m_data[offsetDataBytes + OFF_3] = valD;
+    // update memory in visual
+    const DATA_SZ_ALL = VirtualMachineComponent.MAX_EMULATOR_DATA_SIZE +
+      VirtualMachineComponent.MAX_EMULATOR_STACK_SIZE;
+    this.m_memoryViewerChild.setData(this.m_data, DATA_SZ_ALL);
   }
   public getDwordFromMemory(offsetDataBytes) {
     const SHIFT_8 = 8;
@@ -553,8 +594,9 @@ export class VirtualMachineComponent implements OnInit {
     //   s_virtualMachine->m_registerFlags |= FLAG_CARRY;
     if (valDst < valSrc) {
       // tslint:disable-next-line
-      this.m_regFlags |= ~RegFlags.FLAG_CARRY;
+      this.m_regFlags |= RegFlags.FLAG_CARRY;
     }
+    this.m_regFlagsChild.setFlags(this.m_regFlags);
   }
 
   public modifyFlags(valDst) {
@@ -581,6 +623,7 @@ export class VirtualMachineComponent implements OnInit {
       // tslint:disable-next-line
       this.m_regFlags &= ~RegFlags.FLAG_PARITY;
     }
+    this.m_regFlagsChild.setFlags(this.m_regFlags);
   }
 
   public getData() {
@@ -970,6 +1013,7 @@ export class VirtualMachineComponent implements OnInit {
     const opSrc = instr.m_operandSrc;
     const valDst = this.getDataFromOperand(opDst);
     const valSrc = this.getDataFromOperand(opSrc);
+    // console.log(`instrCmp. ${valDst} VS ${valSrc}`);
     this.setupFlagsByTwo(valDst, valSrc);
     return FAIL;
   }

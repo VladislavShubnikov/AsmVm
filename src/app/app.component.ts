@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { Preprocessor } from './core/preprocessor';
 // import { Service } from './service';
+
+import { VirtualMachineComponent } from './virtual-machine/virtual-machine.component';
 
 
 @Component({
@@ -21,7 +23,14 @@ export class AppComponent {
   public m_clickCounter: number;
   public m_strInput: string;
   public m_strInputPreprocessed: string;
-  // m_service: Service;
+
+  private m_fileToOpen: File = null;
+
+  // ******************************
+  // Child components
+  // ******************************
+  @ViewChild(VirtualMachineComponent)
+  m_virtualMachine: VirtualMachineComponent;
 
   // *****************************
   // Methods
@@ -46,6 +55,23 @@ export class AppComponent {
       xor EAX, EAX\n\
     ';
     this.m_strInputPreprocessed = '';
+  }
+  openLocal() {
+    // console.log('openLocal...');
+  }
+  onOpenedFiles(files: FileList) {
+    this.m_fileToOpen = files.item(0);
+    const fName = this.m_fileToOpen.name;
+    // console.log(`onOpenedFiles... name = ${fName}`);
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+      const fileContent = fileReader.result;
+      // console.log(`File content = ${fileContent}`);
+
+      // assign loaded text to virt machine
+      this.m_virtualMachine.setSourceCode(fileContent);
+    };
+    fileReader.readAsText(this.m_fileToOpen);
   }
   onClickMe() {
     // this.m_clickMessage = 'You have clicked!';

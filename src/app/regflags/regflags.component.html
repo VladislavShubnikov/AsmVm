@@ -1,0 +1,12 @@
+<p>
+  {{m_strRegisters}}
+</p>
+<table class="table table-bordered table-condensed text-center">
+  <tbody>
+    <tr>
+    
+      <td *ngFor="let bit of m_bits; index as i" [class.table-danger]=isSelected(i)>
+        {{m_flagNames[i]}}
+    </tr>
+  </tbody>
+</table>

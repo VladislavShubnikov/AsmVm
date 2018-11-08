@@ -6,6 +6,7 @@ import { InstrSetComponent } from '../instrset/instrset.component';
 import { RegistersComponent } from '../registers/registers.component';
 import { MemoryViewerComponent } from '../memoryviewer/memoryviewer.component';
 import { ConsoleComponent } from '../console/console.component';
+import { RegflagsComponent } from '../regflags/regflags.component';
 
 import { LexemType } from '../core/lexemtype';
 import { Compiler } from '../core/compiler';
@@ -24,7 +25,8 @@ describe('VirtualMachineComponent', () => {
     TestBed.configureTestingModule({
       imports: [ HttpClientTestingModule ],
       declarations: [ VirtualMachineComponent, InstrSetComponent,
-        RegistersComponent, MemoryViewerComponent, ConsoleComponent ]
+        RegistersComponent, MemoryViewerComponent, ConsoleComponent,
+        RegflagsComponent ]
     })
     .compileComponents();
   }));

@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
 import { RegistersComponent } from './registers/registers.component';
@@ -12,6 +13,7 @@ import { VirtualMachineComponent } from './virtual-machine/virtual-machine.compo
 import { TestService } from './services/testservice';
 import { MemoryViewerComponent } from './memoryviewer/memoryviewer.component';
 import { RandomComponent } from './random/random.component';
+import { RegflagsComponent } from './regflags/regflags.component';
 
 @NgModule({
   declarations: [
@@ -22,11 +24,14 @@ import { RandomComponent } from './random/random.component';
     ConsoleComponent,
     VirtualMachineComponent,
     MemoryViewerComponent,
-    RandomComponent
+    RandomComponent,
+    RegflagsComponent
   ],
   imports: [
     BrowserModule,
-    HttpClientModule
+    HttpClientModule,
+    // tslint:disable-next-line
+    NgbModule.forRoot()
   ],
   providers: [
     TestService
