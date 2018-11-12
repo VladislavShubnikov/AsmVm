@@ -49,6 +49,17 @@ v10.10.0 (or higher).
 
 Run `npm install` to load all requied Node packages. They will appear in `node_modules` folder.
 
+## Install Angular 6.2.1
+Run command:
+```
+npm install -g @angular/cli
+```
+and then check version by command:
+```
+ng -v
+```
+Angular version should be not less then:
+Angular CLI: 6.2.1
 
 ## Development server
 
