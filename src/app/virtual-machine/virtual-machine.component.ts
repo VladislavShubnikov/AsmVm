@@ -40,6 +40,17 @@ const CODE_NUM_ITERATIONS = 3;
 
 type BackendCallback = (instr: InstructionComponent) => number;
 
+enum VirtualMachineState {
+  STATE_READY_TO_START = 0,
+  STATE_NOT_LOADED  = 1,
+  STATE_SOURCE_NOT_COMPILED = 2,
+  STATE_EXECUTION_IN_PROGRESS = 3,
+  STATE_ERROR_EXECUTION = 4,
+  STATE_CODE_COMPLETED = 5
+}
+
+// **********************************************************
+
 // component description (decorator) shoul be declared just before
 // export section
 @Component({
@@ -47,8 +58,6 @@ type BackendCallback = (instr: InstructionComponent) => number;
   templateUrl: './virtual-machine.component.html',
   styleUrls: ['./virtual-machine.component.css']
 })
-
-// **********************************************************
 
 export class VirtualMachineComponent implements OnInit {
 
@@ -68,6 +77,8 @@ export class VirtualMachineComponent implements OnInit {
   m_strTitle: string;
   m_strRun: string;
   m_strStep: string;
+  m_strVmState: string;
+  m_strNumInstructionsPerformed: string;
 
   m_registers: number[];
   m_regFlags: number;
@@ -76,6 +87,8 @@ export class VirtualMachineComponent implements OnInit {
   m_instrSet: InstrSetComponent;
   m_curInstructionIndex: number;
   m_strErr: string;
+
+  m_state: VirtualMachineState;
 
   m_backends: BackendCallback[];
 
@@ -156,10 +169,25 @@ export class VirtualMachineComponent implements OnInit {
     // this.m_regFlagsChild.setFlags(FLAGS);
   }
 
+  setSourceError(strError: string) {
+    const STR_DUMMY_CODE = 'nop';
+    this.setSourceCode( STR_DUMMY_CODE);
+    this.m_consoleChild.clear();
+    this.m_consoleChild.addString(strError);
+    this.m_state = VirtualMachineState.STATE_SOURCE_NOT_COMPILED;
+  }
+
   setSourceCode(strCode: string) {
     // console.log(`VM. setSourceCode = ${strCode}`);
     // assign to instruction set component
-    this.m_instrSetChild.compileFromSource(strCode);
+    const isGoodCompiled = this.m_instrSetChild.compileFromSource(strCode);
+    if (!isGoodCompiled) {
+      this.m_consoleChild.clear();
+      const strErr = this.m_instrSetChild.m_strError;
+      this.m_consoleChild.addString(strErr);
+      this.m_state = VirtualMachineState.STATE_SOURCE_NOT_COMPILED;
+      return;
+    }
     // init registers
     this.m_registers[Register.REG_ECX] = CODE_NUM_ITERATIONS;
     this.m_registers[Register.REG_ESI] = 0;
@@ -175,6 +203,22 @@ export class VirtualMachineComponent implements OnInit {
     const DATA_SZ_ALL = VirtualMachineComponent.MAX_EMULATOR_DATA_SIZE +
       VirtualMachineComponent.MAX_EMULATOR_STACK_SIZE;
     this.m_memoryViewerChild.setData(this.m_data, DATA_SZ_ALL);
+    this.m_state = VirtualMachineState.STATE_READY_TO_START;
+  }
+  public getStateString() {
+    if (this.m_state === VirtualMachineState.STATE_READY_TO_START) {
+      return 'Готов к выполнению';
+    } else if (this.m_state === VirtualMachineState.STATE_SOURCE_NOT_COMPILED) {
+      return 'Ошибка компиляции';
+    } else if (this.m_state === VirtualMachineState.STATE_NOT_LOADED) {
+      return 'Текст не загружен';
+    } else if (this.m_state === VirtualMachineState.STATE_EXECUTION_IN_PROGRESS) {
+      return 'Код выполняется';
+    } else if (this.m_state === VirtualMachineState.STATE_ERROR_EXECUTION) {
+      return 'Ошибка в процессе выполнения';
+    } else if (this.m_state === VirtualMachineState.STATE_CODE_COMPLETED) {
+      return 'Код выполнен без ошибок';
+    }
   }
 
   constructor(private http: HttpClient) {
@@ -182,8 +226,11 @@ export class VirtualMachineComponent implements OnInit {
     this.m_strTitle = 'Виртуальная машина ассемблера';
     this.m_strRun = 'Играть';
     this.m_strStep = 'Шаг  ';
+    this.m_strVmState = 'Состояние виртуальной машины: ';
+    this.m_strNumInstructionsPerformed = 'Выполнено инструкций: ';
     this.m_isRunning = false;
     this.m_numPerformedInstructions = 0;
+    this.m_state = VirtualMachineState.STATE_NOT_LOADED;
 
     // init code tests with some trash data
     this.m_codeTests = new Array(1);
@@ -260,6 +307,7 @@ export class VirtualMachineComponent implements OnInit {
     const strMsg = `Старт выполнения ${numInstructionsInSet} инструкций...`;
     this.m_consoleChild.addString(strMsg);
 
+    this.m_state = VirtualMachineState.STATE_EXECUTION_IN_PROGRESS;
     const TIME_DELAY = 400;
     const timerObj = setInterval( () => {
       // perform one sigle step of current instruction execution
@@ -276,6 +324,7 @@ export class VirtualMachineComponent implements OnInit {
           const strMsgErr = `ВМ. Ошибка выполнения = ${this.m_strErr}`;
           this.m_consoleChild.addString(strMsgErr);
           console.log(strMsg);
+          this.m_state = VirtualMachineState.STATE_ERROR_EXECUTION;
           return;
         }
         if (this.m_curInstructionIndex >= numInstructionsInSet) {
@@ -287,6 +336,7 @@ export class VirtualMachineComponent implements OnInit {
           const strMsg2 = `ВМ. Исходных ${numInstructionsInSet} инструкций`;
           this.m_consoleChild.addString(strMsg2);
           console.log(strMsg2);
+          this.m_state = VirtualMachineState.STATE_CODE_COMPLETED;
         } // if finish iunstr set
       } else {
         // update visuals: isntr set
@@ -322,6 +372,7 @@ export class VirtualMachineComponent implements OnInit {
       const strMsg = `ВМ. Ошибка выполнения = ${this.m_strErr}`;
       this.m_consoleChild.addString(strMsg);
       console.log(strMsg);
+      this.m_state = VirtualMachineState.STATE_ERROR_EXECUTION;
       return;
     }
     if (this.m_curInstructionIndex >= numInstructionsInSet) {
@@ -333,6 +384,7 @@ export class VirtualMachineComponent implements OnInit {
       const strMsg2 = `ВМ. Исходных ${numInstructionsInSet} инструкций`;
       this.m_consoleChild.addString(strMsg2);
       console.log(strMsg2);
+      this.m_state = VirtualMachineState.STATE_CODE_COMPLETED;
     }
     // update visuals: instr set
     // this.m_instrSetChild.m_currentLine = this.m_curInstructionIndex;
@@ -342,6 +394,7 @@ export class VirtualMachineComponent implements OnInit {
     for (let i = 0; i < Register.REG_COUNT; i++) {
       this.m_registersChild.setIndividualRegisterValue(i, this.m_registers[i]);
     }
+    this.m_state = VirtualMachineState.STATE_EXECUTION_IN_PROGRESS;
   }
 
   getInstructionIndexByLabel(labelNumber) {

@@ -1135,8 +1135,9 @@ export class Compiler {
     const isGoodCharsInCode = prep.checkInvalidCharacters(strWithoutComments);
     // console.log(`Compiler. preprocessCode. isGoodCharsInCode = ${isGoodCharsInCode}`);
     if (!isGoodCharsInCode) {
-      console.log('Comipler.createCode: bad chars found');
-      this.m_strErr = 'Comipler.createCode: bad chars found';
+      const strErrPrep = prep.m_strErr;
+      console.log(strErrPrep);
+      this.m_strErr = strErrPrep;
       return '';
     }
     const isGoodIdentLen = prep.checkMaxIdentifierLength(strWithoutComments);

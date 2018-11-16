@@ -10,8 +10,8 @@ export class Preprocessor {
   // ********************************************************
   // Data
   // ********************************************************
-  m_strErr:       string;
-  m_identifiers:  string[];
+  public m_strErr:       string;
+  public m_identifiers:  string[];
 
   // ********************************************************
   // Methods

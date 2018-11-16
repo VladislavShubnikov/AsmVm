@@ -67,6 +67,14 @@ export class AppComponent {
     fileReader.onload = () => {
       const fileContent = fileReader.result;
       // console.log(`File content = ${fileContent}`);
+      const lenFile = fileContent.length;
+      const MAX_FILE_LEN = 4096;
+      if (lenFile > MAX_FILE_LEN) {
+        const strErrToLong = `Too large file. Size = ${lenFile}`;
+        console.log(strErrToLong);
+        this.m_virtualMachine.setSourceError(strErrToLong);
+        return;
+      }
 
       // assign loaded text to virt machine
       this.m_virtualMachine.setSourceCode(fileContent);

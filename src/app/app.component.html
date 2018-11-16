@@ -14,6 +14,7 @@
           Загрузить
         </button>
         <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+
           <button class="dropdown-item">
             <div class="form-group">
                 <label for="file">
@@ -24,6 +25,7 @@
                   (change)="onOpenedFiles($event.target.files)">
             </div>            
           </button>
+          
           <button class="dropdown-item" (click)="openLocal()">
             Загрузить из списка
            </button>

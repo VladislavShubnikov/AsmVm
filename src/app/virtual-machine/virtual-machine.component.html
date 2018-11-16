@@ -6,9 +6,12 @@
     </h4>
   </div>
   <div class="card-body">
-    Here some machine
     <p>
-      EAX = {{m_codeTests[0].resEAX}}
+      {{m_strVmState}} {{getStateString()}}
+    </p>
+
+    <p>
+      {{m_strNumInstructionsPerformed}} {{m_numPerformedInstructions}}
     </p>
 
   <table class="table">

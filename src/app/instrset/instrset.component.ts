@@ -25,6 +25,8 @@ export class InstrSetComponent implements OnInit {
   public m_strUp: string;
   public m_strDown: string;
   public m_strCompiledCode: string;
+  // compile error
+  public m_strError: string;
 
   public m_instructions: InstructionComponent[];
   public m_instrLines: string[];
@@ -39,6 +41,7 @@ export class InstrSetComponent implements OnInit {
     this.m_strUp = 'Вверх';
     this.m_strDown = 'Вниз';
     this.m_strCompiledCode = 'Скомпилированный код';
+    this.m_strError = '';
 
     // top visible source line
     this.m_topLine = 0;
@@ -151,8 +154,15 @@ export class InstrSetComponent implements OnInit {
     const compiler = new Compiler();
     const errCompileBool = compiler.createCode(strAsmText, this);
     if (!errCompileBool) {
-      console.log(`Unexpected comple error = ${compiler.m_strErr}`);
+      console.log(`Unexpected compile error = ${compiler.m_strErr}`);
+      this.m_strError = compiler.m_strErr;
+      return false;
     }
+    if (compiler.m_strErr.length !== 0) {
+      this.m_strError = compiler.m_strErr;
+      return false;
+    }
+
     /*
     const numCompiledLines = this.m_instructions.length;
     const numLinesToShow = (numCompiledLines <= InstrSetComponent.NUM_VISIBLE_LINES) ?
@@ -166,6 +176,7 @@ export class InstrSetComponent implements OnInit {
     this.m_topLine = 0;
     this.m_currentLine = 0;
     this.fillLines();
+    return true;
   }
 
 
