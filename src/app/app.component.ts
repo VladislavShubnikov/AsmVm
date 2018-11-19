@@ -64,10 +64,10 @@ export class AppComponent {
     const fName = this.m_fileToOpen.name;
     // console.log(`onOpenedFiles... name = ${fName}`);
     const fileReader = new FileReader();
-    fileReader.onload = () => {
-      const fileContent = fileReader.result;
-      // console.log(`File content = ${fileContent}`);
-      const lenFile = fileContent.length;
+    fileReader.onload = (evt: Event) => {
+      const strFile = fileReader.result.toString();
+      const lenFile =   strFile.length;
+      // console.log(`File content = ${typeof strFile}, file len = ${lenFile}`);
       const MAX_FILE_LEN = 4096;
       if (lenFile > MAX_FILE_LEN) {
         const strErrToLong = `Too large file. Size = ${lenFile}`;
@@ -77,7 +77,7 @@ export class AppComponent {
       }
 
       // assign loaded text to virt machine
-      this.m_virtualMachine.setSourceCode(fileContent);
+      this.m_virtualMachine.setSourceCode(strFile);
     };
     fileReader.readAsText(this.m_fileToOpen);
   }
